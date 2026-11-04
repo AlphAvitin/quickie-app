@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#08070d">
+  <title>Localização compartilhada • Quickie</title>
+  <style>
+    :root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#08070d;color:#f8f6fb}*{box-sizing:border-box}body{margin:0;min-height:100dvh;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);display:flex;justify-content:center;background:radial-gradient(ellipse at top,#24122f 0,#08070d 55%)}main{width:min(100%,560px);padding:28px 0 36px}.brand{font-size:13px;letter-spacing:.2em;color:#c9a7ff;text-transform:uppercase;font-weight:800}.card{margin-top:16px;background:#15131b;border:1px solid #302b3a;border-radius:22px;padding:20px;box-shadow:0 18px 60px #0006}h1{font-size:24px;margin:5px 0 8px}p{color:#c6bfce;line-height:1.5;margin:8px 0}.muted{font-size:13px;color:#9b94a4}.field{display:flex;gap:10px;margin-top:18px}input{min-width:0;flex:1;border:1px solid #484152;border-radius:12px;padding:13px;background:#0d0b12;color:#fff;font-size:18px;letter-spacing:.15em}button{border:0;border-radius:12px;padding:13px 16px;background:#a66bff;color:#160d22;font-size:15px;font-weight:800}.status{margin-top:14px;color:#e8dcff;font-size:14px}.map{display:none;margin-top:16px;overflow:hidden;border-radius:16px;border:1px solid #37313f;background:#100e14}.map iframe{width:100%;height:340px;border:0;display:block}.details{display:none;margin-top:14px;padding:14px;border-radius:14px;background:#0e0c12}.details strong{display:block;color:#fff}.details span{display:block;color:#b4adbd;font-size:13px;margin-top:4px}.warning{margin-top:18px;padding:12px;border-radius:12px;background:#211d27;color:#bdb5c7;font-size:12px;line-height:1.5}.hide{display:none!important}@media(max-width:420px){.field{flex-direction:column}.map iframe{height:300px}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand">Quickie · Segurança</div>
+  <section class="card">
+    <h1 id="heading">Acompanhar localização</h1>
+    <p id="intro">Digite o código de 8 números que a pessoa enviou separadamente para abrir o compartilhamento.</p>
+    <form id="verify-form" class="field">
+      <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{8}" placeholder="Código de acesso" aria-label="Código de acesso" required>
+      <button type="submit">Acompanhar</button>
+    </form>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <div id="details" class="details"><strong id="owner"></strong><span id="updated"></span><span id="expires"></span></div>
+    <div id="map" class="map"><iframe title="Mapa da localização compartilhada" referrerpolicy="no-referrer" loading="lazy"></iframe></div>
+    <div class="warning">A localização só fica disponível até o horário mostrado e pode ser encerrada a qualquer momento. Se a atualização ficar desatualizada, avise a pessoa. O mapa é fornecido pelo OpenStreetMap e recebe as coordenadas necessárias para exibir o ponto.</div>
+  </section>
+</main>
+<script>
+  const API_BASE = "https://trepadinha.fly.dev";
+  const linkToken = location.hash.slice(1);
+  const form = document.getElementById('verify-form');
+  const statusBox = document.getElementById('status');
+  const mapBox = document.getElementById('map');
+  const details = document.getElementById('details');
+  let viewerToken = '';
+  let expiresAt = 0;
+  let sharedOwnerName = "";
+  let lastLocationKey = '';
+  let pollTimer = null;
+  const setStatus = (message) => { statusBox.textContent = message; };
+  if (!linkToken) { form.classList.add('hide'); setStatus('Este link está incompleto. Peça um novo link para a pessoa.'); }
+  function formatTime(value) { return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)); }
+  function showMap(location) {
+    const delta = 0.006;
+    const bbox = [location.longitude-delta, location.latitude-delta, location.longitude+delta, location.latitude+delta].join('%2C');
+    const marker = `${location.latitude}%2C${location.longitude}`;
+    mapBox.querySelector('iframe').src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`;
+    mapBox.style.display = 'block';
+  }
+  async function poll() {
+    if (!viewerToken) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/trust-location/location`, { headers: { Authorization: `Bearer ${viewerToken}` }, cache: 'no-store', referrerPolicy: 'no-referrer' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 410 || response.status === 401) { clearInterval(pollTimer); viewerToken = ''; setStatus(data.error || 'Este compartilhamento terminou.'); }
+        return;
+      }
+      expiresAt = data.expiresAt;
+      details.style.display = 'block';
+      document.getElementById('expires').textContent = `Compartilhamento termina às ${formatTime(expiresAt)}.`;
+      if (!data.location) { setStatus('Aguardando a primeira localização…'); return; }
+      const loc = data.location;
+      const key = `${loc.latitude}:${loc.longitude}:${loc.updatedAt}`;
+      if (key !== lastLocationKey) { showMap(loc); lastLocationKey = key; }
+      document.getElementById('updated').textContent = `Última atualização: ${formatTime(loc.updatedAt)}.`;
+      document.getElementById('owner').textContent = sharedOwnerName ? `Localização de ${sharedOwnerName}` : 'Localização compartilhada com você';
+      const age = Date.now() - loc.updatedAt;
+      setStatus(age > 45000 ? 'A posição está desatualizada. A pessoa pode ter fechado o Quickie ou perdido a conexão.' : 'Compartilhamento ativo · atualizando automaticamente.');
+    } catch { setStatus('Sem conexão com o Quickie. Tentando novamente…'); }
+  }
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const code = document.getElementById('code').value.trim();
+    if (!linkToken || !/^\d{8}$/.test(code)) { setStatus('Informe o código de 8 números.'); return; }
+    setStatus('Validando acesso…');
+    try {
+      const response = await fetch(`${API_BASE}/api/trust-location/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ linkToken, code }), cache: 'no-store', referrerPolicy: 'no-referrer' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) { setStatus(data.error || 'Link ou código inválido.'); return; }
+      viewerToken = data.viewerToken;
+      sharedOwnerName = data.ownerName || '';
+      sessionStorage.setItem('quickie-location-view-token', viewerToken);
+      document.getElementById('heading').textContent = 'Acompanhamento ativo';
+      document.getElementById('intro').textContent = 'Esta página atualiza a localização automaticamente enquanto o compartilhamento estiver ativo.';
+      document.getElementById('owner').textContent = `Localização de ${data.ownerName}`;
+      form.classList.add('hide');
+      await poll();
+      pollTimer = setInterval(poll, 12000);
+    } catch { setStatus('Não foi possível conectar. Verifique sua internet e tente novamente.'); }
+  });
+  const savedViewerToken = sessionStorage.getItem('quickie-location-view-token');
+  if (linkToken && savedViewerToken) { viewerToken = savedViewerToken; form.classList.add('hide'); document.getElementById('intro').textContent = 'Retomando o acompanhamento desta sessão…'; poll(); pollTimer = setInterval(poll, 12000); }
+</script>
+</body>
+</html>
