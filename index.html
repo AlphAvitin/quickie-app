@@ -5,6 +5,25 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>Quickie</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  <link rel="icon" href="/favicon.ico"/>
     <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -23,91 +42,27 @@
     <link rel="apple-touch-startup-image" href="/splash/iphone-x.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
     <link rel="apple-touch-startup-image" href="/splash/iphone-se-2.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
     <link rel="apple-touch-startup-image" href="/splash/iphone-5.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="quickie-fonts">
-      @font-face {
-        font-family: 'Aboreto';
-        src: url('/fonts/Aboreto-Regular.ttf') format('truetype');
-        font-weight: 400;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'AbyssinicaSIL';
-        src: url('/fonts/AbyssinicaSIL-Regular.ttf') format('truetype');
-        font-weight: 400;
-        font-display: swap;
-      }
+      @font-face { font-family: 'Aboreto'; src: url('/fonts/Aboreto-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+      @font-face { font-family: 'AbyssinicaSIL'; src: url('/fonts/AbyssinicaSIL-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
       html, body { font-family: 'AbyssinicaSIL', serif; }
     </style>
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        width: 100%;
-        min-height: 100%;
-        height: 100%;
-        margin: 0;
-        background: #000;
-        overscroll-behavior: none;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-        -webkit-overflow-scrolling: touch;
-        -webkit-touch-callout: none;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        min-height: 100%;
-        height: 100%;
-        flex: 1;
-        --quickie-safe-area-top: env(safe-area-inset-top, 0px);
-        --quickie-safe-area-right: env(safe-area-inset-right, 0px);
-        --quickie-safe-area-bottom: env(safe-area-inset-bottom, 0px);
-        --quickie-safe-area-left: env(safe-area-inset-left, 0px);
-      }
-      #root,
-      #root *:not(input):not(textarea):not([contenteditable="true"]) {
-        -webkit-user-select: none;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-      #root input,
-      #root textarea,
-      #root [contenteditable="true"] {
-        -webkit-user-select: text;
-        user-select: text;
-      }
-      button,
-      a {
-        touch-action: manipulation;
-      }
-      @supports (height: 100dvh) {
-        html,
-        body,
-        #root {
-          height: 100dvh;
-          min-height: 100dvh;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          scroll-behavior: auto !important;
-        }
-      }
+    <style id="quickie-pwa-layout">
+      html, body { width: 100%; min-height: 100%; height: 100%; margin: 0; background: #000; overscroll-behavior: none; }
+      body { overflow: hidden; -webkit-overflow-scrolling: touch; -webkit-touch-callout: none; }
+      #root { display: flex; min-height: 100%; height: 100%; flex: 1; --quickie-safe-area-top: env(safe-area-inset-top, 0px); --quickie-safe-area-right: env(safe-area-inset-right, 0px); --quickie-safe-area-bottom: env(safe-area-inset-bottom, 0px); --quickie-safe-area-left: env(safe-area-inset-left, 0px); }
+      #root, #root *:not(input):not(textarea):not([contenteditable="true"]) { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+      #root input, #root textarea, #root [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+      button, a { touch-action: manipulation; }
+      @supports (height: 100dvh) { html, body, #root { height: 100dvh; min-height: 100dvh; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
     </style>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
-        });
+        window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {}));
       }
     </script>
-  <meta name="theme-color" content="#000000">
-<link rel="icon" href="/favicon.ico"/></head>
+  </head>
 
   <body>
     <!-- Use static rendering with Expo Router to support running without JavaScript. -->
@@ -116,6 +71,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/_expo/static/js/web/index-eedab7ca500d3d930fdb86a1b6a71f45.js" defer></script>
+  <script src="/_expo/static/js/web/index-beef50bc27c2e879ff2b4abd8eb55aef.js" defer></script>
 </body>
 </html>
