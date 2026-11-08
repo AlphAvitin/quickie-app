@@ -103,7 +103,7 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
           try {
-            const registration = await navigator.serviceWorker.register('/sw.js?v=20261108-v2', { scope: '/' });
+            const registration = await navigator.serviceWorker.register('/sw.js?v=20261108-v3', { scope: '/' });
             await registration.update();
 
             let reloadedForUpdate = false;
@@ -117,13 +117,15 @@
             document.addEventListener('visibilitychange', () => {
               if (document.visibilityState === 'visible') checkForUpdate();
             });
+            window.addEventListener('pageshow', checkForUpdate);
+            window.addEventListener('focus', checkForUpdate);
             window.setInterval(checkForUpdate, 60 * 1000);
           } catch {}
         });
       }
     </script>
   <meta name="theme-color" content="#000000">
-<link rel="icon" href="/favicon.ico"/><script>window.__QUICKIE_RELEASE__="9e1ed7939c8db4ea";</script></head>
+<link rel="icon" href="/favicon.ico"/><script>window.__QUICKIE_RELEASE__="da2658a9237b066f";</script></head>
 
   <body>
     <!-- Use static rendering with Expo Router to support running without JavaScript. -->
@@ -132,6 +134,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/_expo/static/js/web/index-822bd32566063e3fa0f2370e842083ef.js" defer></script>
+  <script src="/_expo/static/js/web/index-4eb9ecc406625213e75684773289673a.js" defer></script>
 </body>
 </html>

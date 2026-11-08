@@ -1,4 +1,6 @@
-const CACHE_NAME = 'quickie-shell-20261108-v2';
+// Bump this whenever the shell/update behavior changes. The versioned name
+// guarantees old iOS home-screen workers are retired during activation.
+const CACHE_NAME = 'quickie-shell-20261108-v3';
 const APP_SHELL = [
   '/',
   '/offline.html',
