@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quickie-shell-recovery-20261106';
+const CACHE_NAME = 'quickie-shell-20261108-v2';
 const APP_SHELL = [
   '/',
   '/offline.html',
