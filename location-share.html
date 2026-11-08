@@ -30,6 +30,7 @@
 <script>
   const API_BASE = "https://trepadinha.fly.dev";
   const linkToken = location.hash.slice(1);
+  const shareId = new URLSearchParams(location.search).get('share') || '';
   const form = document.getElementById('verify-form');
   const statusBox = document.getElementById('status');
   const mapBox = document.getElementById('map');
@@ -74,10 +75,10 @@
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const code = document.getElementById('code').value.trim();
-    if (!linkToken || !/^\d{8}$/.test(code)) { setStatus('Informe o código de 8 números.'); return; }
+    if ((!linkToken && !/^\d+$/.test(shareId)) || !/^\d{8}$/.test(code)) { setStatus('Informe o código de 8 números.'); return; }
     setStatus('Validando acesso…');
     try {
-      const response = await fetch(`${API_BASE}/api/trust-location/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ linkToken, code }), cache: 'no-store', referrerPolicy: 'no-referrer' });
+      const response = await fetch(`${API_BASE}/api/trust-location/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ linkToken, shareId: shareId || undefined, code }), cache: 'no-store', referrerPolicy: 'no-referrer' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { setStatus(data.error || 'Link ou código inválido.'); return; }
       viewerToken = data.viewerToken;
