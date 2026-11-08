@@ -103,7 +103,7 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
           try {
-            const registration = await navigator.serviceWorker.register('/sw.js?v=20261108-v3', { scope: '/' });
+            const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' });
             await registration.update();
 
             let reloadedForUpdate = false;
@@ -125,7 +125,7 @@
       }
     </script>
   <meta name="theme-color" content="#000000">
-<link rel="icon" href="/favicon.ico"/><script>window.__QUICKIE_RELEASE__="da2658a9237b066f";</script></head>
+<link rel="icon" href="/favicon.ico"/><script>window.__QUICKIE_RELEASE__="8f31440f621d03e5";</script></head>
 
   <body>
     <!-- Use static rendering with Expo Router to support running without JavaScript. -->

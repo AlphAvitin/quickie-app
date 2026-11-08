@@ -1,6 +1,6 @@
 // Bump this whenever the shell/update behavior changes. The versioned name
 // guarantees old iOS home-screen workers are retired during activation.
-const CACHE_NAME = 'quickie-shell-20261108-v3';
+const CACHE_NAME = 'quickie-shell-20261108-v4';
 const APP_SHELL = [
   '/',
   '/offline.html',
@@ -23,6 +23,15 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((key) => key.startsWith('quickie-shell-') && key !== CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
+      .then(async () => {
+        const windows = await self.clients.matchAll({ type: 'window' });
+        await Promise.all(windows.map(async (client) => {
+          const target = new URL(client.url);
+          if (target.origin !== self.location.origin) return;
+          target.searchParams.set('quickieUpdate', CACHE_NAME);
+          try { await client.navigate(target.href); } catch {}
+        }));
+      })
   );
 });
 
