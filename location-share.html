@@ -28,7 +28,7 @@
   </section>
 </main>
 <script>
-  const API_BASE = "https://trepadinha.fly.dev";
+  const API_BASE = __QUICKIE_API_URL__;
   const linkToken = location.hash.slice(1);
   const shareId = new URLSearchParams(location.search).get('share') || '';
   const form = document.getElementById('verify-form');
